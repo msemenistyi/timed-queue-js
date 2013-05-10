@@ -14,19 +14,16 @@ function Queue () {
 
 	var queue = [];
 
+	var states = {
+		running: false
+	};
 
-	this.push = function(element){
+	this.push = function(element, options){
 		if (element == undefined)
 			throw new Error("Undefined object can't be added to queue");
-		var duration = element.duration;
-		if (duration == undefined || duration == null){
-			element.duration = config.duration;
-		}
-		var priority = element.priority || config.priority;
-		if (priority == undefined || priority == null){
-			priority.duration = config.priority;
-		}
-		queue.push(element);
+		var options = optionsResolver(options);
+		queue.push({element: element, options: options});
+		processQueue();
 	};
 
 	this.on = function(event, handler){
@@ -61,6 +58,10 @@ function Queue () {
 		return queue;
 	};
 
+	this.getStates = function(){
+		return states;
+	}
+
 	var resetQueue = function(){
 		queue = [];
 	};
@@ -86,5 +87,45 @@ function Queue () {
 		}
 	};
 
+	var processQueue = function(){
+		if (queue.length != 0 && !states.running){
+			var item = queue.shift();
+			states.running = true;
+			triggerHandlers("shift", item.element);
+			setTimeout(processQueue, item.options.duration);
+		} else {
+			states.running = false;
+		}
+	};
 
+	var triggerHandlers = function(event, item){
+		if (handlerNames.indexOf(event) != -1 ){
+			for (var i = 0; i < handlers[event].length; i++){
+				handlers[event][i](item);
+			}
+		} else {
+			throw new Error("There is no such event");
+		}
+	}
+
+	var optionsResolver = function(options){
+		if (options == undefined){
+			var options = {};
+			options.duration = config.duration;
+			options.priority = config.priority;
+		} else {
+			if (options.duration != undefined){
+				options.duration = parseInt(options.duration);
+			} else {
+				options.duration = config.duration;
+			}	
+
+			if (options.priority != undefined){
+				options.priority = parseInt(options.priority);
+			} else {
+				options.priority = config.priority;
+			}	
+		}
+		return options;
+	}
 };

@@ -15,14 +15,14 @@ describe("Method push should", function(){
 		expect(function(){queue.push("asd")}).not.toThrow("Undefined object can't be added to queue");
 	});
 
-	it("increase count of events", function(){
+	xit("increase count of events", function(){
 		var count = queue.getQueue().length;
 		queue.push(object);
 		count++;
 		expect(count).toBe(queue.getQueue().length);		
 	});
 
-	it("add object to queue", function(){
+	xit("add object to queue", function(){
 		var queueArray = queue.getQueue(queue);
 		var obj = queueArray.indexOf(object);
 		expect(obj).toBe(-1);
@@ -139,4 +139,64 @@ describe("Method config should", function(){
 	it("throw expection when calling 'set' with second parameter not represented with object", function(){
 		expect(function(){queue.config("set");}).toThrow("Wrong config properties list");
 	})
+});
+
+describe("Queue should", function(){
+
+	var self = this;
+
+	beforeEach(function(){
+		queue = new Queue();
+	});
+	
+	this.fun = function(event){ return "fun_result"; }
+	this.fun2 = function(event){ return "fun_result"; }
+	it("trigger attached handler on event added to the queue", function(){
+		spyOn(self, "fun");
+		expect(self.fun.calls.length).toBe(0);
+		queue.on("shift", self.fun)
+		queue.push("1");
+		expect(self.fun.calls.length).toBe(1);
+	});	
+
+	it("trigger all attached handlers on event added to the queue", function(){
+		spyOn(self, "fun");
+		spyOn(self, "fun2");
+		expect(self.fun.calls.length).toBe(0);
+		expect(self.fun2.calls.length).toBe(0);
+		queue.on("shift", self.fun);
+		queue.on("shift", self.fun2);
+		queue.push("1");
+		expect(self.fun.calls.length).toBe(1);
+		expect(self.fun2.calls.length).toBe(1);
+	});	
+
+	var duration = 300;
+	var options = {
+			duration: duration
+		};
+
+	it("trigger handlers to be called for all events in the queue", function(){
+		spyOn(self, "fun");
+		expect(self.fun.calls.length).toBe(0);
+		jasmine.Clock.useMock();
+		queue.on("shift", self.fun);
+		queue.push("1", options);
+		jasmine.Clock.tick(300);
+		queue.push("2");
+		expect(self.fun.calls.length).toBe(2);
+	});
+
+	it("trigger handlers to be called in time", function(){
+		spyOn(self, "fun");
+		expect(self.fun.calls.length).toBe(0);
+		jasmine.Clock.useMock();
+		queue.on("shift", self.fun);
+		queue.push("1", options);
+		jasmine.Clock.tick(299);
+		queue.push("2");
+		expect(self.fun.calls.length).toBe(1);
+		jasmine.Clock.tick(1);
+		expect(self.fun.calls.length).toBe(2);
+	});
 });
