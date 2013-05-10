@@ -187,7 +187,7 @@ describe("Queue should", function(){
 		expect(self.fun.calls.length).toBe(2);
 	});
 
-	it("trigger handlers to be called in time", function(){
+	it("trigger handlers to be called right in time (not earlier)", function(){
 		spyOn(self, "fun");
 		expect(self.fun.calls.length).toBe(0);
 		jasmine.Clock.useMock();

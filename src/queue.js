@@ -2,7 +2,8 @@ function Queue () {
 
 	var config = {
 		duration: 1000,
-		priority: 0
+		priority: 0,
+		higherPrioritiesReseting: true
 	};
 
 	var handlerNames = ["shift"];
@@ -89,6 +90,7 @@ function Queue () {
 
 	var processQueue = function(){
 		if (queue.length != 0 && !states.running){
+			updateQueueDueToPriorities();
 			var item = queue.shift();
 			states.running = true;
 			triggerHandlers("shift", item.element);
@@ -128,4 +130,16 @@ function Queue () {
 		}
 		return options;
 	}
+
+	var updateQueueDueToPriorities = function(){
+		if (config.higherPrioritiesReseting == true){
+			for (var i = 1; i < queue.length; i++) if (queue[i].priority < queue[0].priority){
+					queue.splice(i,1);
+			}
+		} else {
+			queue.sort(function(i,j){
+				return i.priority < j.priority ? 1 : (i.priority == j.priority ? 0 : -1);
+			});
+		}
+	};
 };
