@@ -27,11 +27,33 @@ function Queue () {
 		processQueue();
 	};
 
-	this.on = function(event, handler){
+	this.on = function(event, handlerOptions){
 		if (event){
 			if (handlerNames.indexOf(event) != -1){ 
-				if (typeof handler == "function"){
-					handlers[event].push(handler);
+				if (typeof handlerOptions == "function"){
+					handlers[event].push({fun: handlerOptions});
+				} else if (typeof handlerOptions == "object"){
+					if (typeof handlerOptions.handler == "function"){
+						var handler = {};
+						handler.fun = handlerOptions.handler;
+						if (typeof handlerOptions.priority != "undefined"){
+							if (typeof handlerOptions.priority == "number"){
+								handler.priority = parseInt(handlerOptions.priority);
+							} else {
+								throw new Error("Event handler priority should be a number");
+							}
+						}
+						if (typeof handlerOptions.calls != "undefined"){
+							if (typeof handlerOptions.calls == "number"){
+								handler.calls = parseInt(handlerOptions.calls);
+							} else {
+								throw new Error("Event handler calls should be a number");
+							}
+						}
+						handlers[event].push(handler);
+					} else {
+						throw new Error("Event handler should be a function");
+					}
 				} else {
 					throw new Error("Event handler should be a function");
 				} 
@@ -102,8 +124,21 @@ function Queue () {
 
 	var triggerHandlers = function(event, item){
 		if (handlerNames.indexOf(event) != -1 ){
+			handlers[event].sort(function(i, j){
+				return i.priority > j.priority ? 1 : (i.priority == j.priority ? 0 : -1);
+			});
 			for (var i = 0; i < handlers[event].length; i++){
-				handlers[event][i](item);
+				if (typeof handlers[event][i].calls != "undefined"){
+					if (handlers[event][i].calls > 0){
+						handlers[event][i].fun(item);
+						handlers[event][i].calls--;
+						if (handlers[event][i].calls == 0){
+							handlers[event].splice(i,1);
+						}
+					}
+				} else {
+					handlers[event][i].fun(item);
+				}
 			}
 		} else {
 			throw new Error("There is no such event");
@@ -138,7 +173,7 @@ function Queue () {
 			}
 		} else {
 			queue.sort(function(i,j){
-				return i.priority < j.priority ? 1 : (i.priority == j.priority ? 0 : -1);
+				return i.priority > j.priority ? 1 : (i.priority == j.priority ? 0 : -1);
 			});
 		}
 	};

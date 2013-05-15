@@ -66,12 +66,24 @@ describe("Method on should", function(){
 	
 	it("add handler function to the list of event handlers", function(){
 		var handlers = queue.getHandlers(event);
-		var fun = handlers.indexOf(handler);
-		expect(fun).toBe(-1);
+		var success = false;
+		for (var i = 0; i < handlers.length; i++ ){
+			if (handlers[i].fun == handler){
+				success = true;
+				break;
+			}
+		}
+		expect(success).toBeFalsy();
 		queue.on(event, handler);
+		success = false;
 		handlers = queue.getHandlers(event);
-		fun = handlers.indexOf(handler);
-		expect(fun).not.toBe(-1);
+		for (var i = 0; i < handlers.length; i++ ){
+			if (handlers[i].fun == handler){
+				success = true;
+				break;
+			}
+		}
+		expect(success).toBeTruthy();
 	});
 });
 
@@ -149,8 +161,8 @@ describe("Queue should", function(){
 		queue = new Queue();
 	});
 	
-	this.fun = function(event){ return "fun_result"; }
-	this.fun2 = function(event){ return "fun_result"; }
+	this.fun = function(event){ console.log("a"); return "fun_result"; }
+	this.fun2 = function(event){ console.log("b"); return "fun_result"; }
 	it("trigger attached handler on event added to the queue", function(){
 		spyOn(self, "fun");
 		expect(self.fun.calls.length).toBe(0);
@@ -182,7 +194,7 @@ describe("Queue should", function(){
 		jasmine.Clock.useMock();
 		queue.on("shift", self.fun);
 		queue.push("1", options);
-		jasmine.Clock.tick(300);
+		jasmine.Clock.tick(300)
 		queue.push("2");
 		expect(self.fun.calls.length).toBe(2);
 	});
@@ -198,5 +210,25 @@ describe("Queue should", function(){
 		expect(self.fun.calls.length).toBe(1);
 		jasmine.Clock.tick(1);
 		expect(self.fun.calls.length).toBe(2);
+	});
+
+	it("trigger handlers by predefined priorities", function(){
+		var hand1 = {
+			handler: self.fun,
+			priority: 1
+		};
+		var hand2 = {
+			handler: self.fun2,
+			priority: 0
+		};
+		spyOn(hand1, "handler");
+		spyOn(hand2, "handler");
+		expect(hand1.handler.calls.length).toBe(0);
+		expect(hand2.handler.calls.length).toBe(0);
+		queue.on("shift", hand1);
+		queue.on("shift", hand2);
+		queue.push("1");
+		expect(hand1.handler.calls.length).toBe(1);
+		expect(hand2.handler.calls.length).toBe(1);
 	});
 });
