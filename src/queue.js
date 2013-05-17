@@ -1,7 +1,7 @@
 function Queue () {
 
 	var config = {
-		duration: 1000,
+		duration: 0,
 		priority: 0,
 		higherPrioritiesReseting: true
 	};
@@ -116,7 +116,11 @@ function Queue () {
 			var item = queue.shift();
 			states.running = true;
 			triggerHandlers("shift", item.element);
-			setTimeout(processQueue, item.options.duration);
+			if (item.options.duration != 0){
+				setTimeout(processQueue, item.options.duration);
+			} else{
+				processQueue();
+			}
 		} else {
 			states.running = false;
 		}
@@ -127,13 +131,16 @@ function Queue () {
 			handlers[event].sort(function(i, j){
 				return i.priority > j.priority ? 1 : (i.priority == j.priority ? 0 : -1);
 			});
-			for (var i = 0; i < handlers[event].length; i++){
+			var y = handlers[event].length;
+			for (var i = 0; i < y; i++){
 				if (typeof handlers[event][i].calls != "undefined"){
 					if (handlers[event][i].calls > 0){
 						handlers[event][i].fun(item);
 						handlers[event][i].calls--;
 						if (handlers[event][i].calls == 0){
 							handlers[event].splice(i,1);
+							y--;
+							i--;
 						}
 					}
 				} else {

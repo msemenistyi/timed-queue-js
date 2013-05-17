@@ -231,4 +231,29 @@ describe("Queue should", function(){
 		expect(hand1.handler.calls.length).toBe(1);
 		expect(hand2.handler.calls.length).toBe(1);
 	});
+
+	it("trigger handlers exactly predefined number of times", function(){
+		var hand1 = {
+			handler: self.fun,
+			calls: 2
+		};
+		var hand2 = {
+			handler: self.fun2
+		};
+		spyOn(hand1, "handler");
+		spyOn(hand2, "handler");
+		expect(hand1.handler.calls.length).toBe(0);
+		expect(hand2.handler.calls.length).toBe(0);
+		queue.on("shift", hand1);
+		queue.on("shift", hand2);
+		queue.push("1");
+		expect(hand1.handler.calls.length).toBe(1);
+		expect(hand2.handler.calls.length).toBe(1);
+		queue.push("2");
+		expect(hand1.handler.calls.length).toBe(2);
+		expect(hand2.handler.calls.length).toBe(2);
+		queue.push("3");
+		expect(hand1.handler.calls.length).toBe(2);
+		expect(hand2.handler.calls.length).toBe(3);
+	});
 });
