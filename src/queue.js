@@ -1,4 +1,4 @@
-function Queue () {
+function Queue (config, states) {
 
 	var config = {
 		duration: 0,
@@ -16,8 +16,40 @@ function Queue () {
 	var queue = [];
 
 	var states = {
-		running: false
+		running: false,
+		custom: []
 	};
+	if (states instanceof Array){
+		for (var i = 0; i < states.length; i++) if (typeof states[i] === "string"){
+			states.custom.push(states[i]);
+		} else {
+			throw new Error("Wrong state type. Custom states should be presented with string defining their names.");
+		}
+	}
+
+	this.config = function(action, object){
+		if (action == "get"){
+			return config;
+		} else if (action == "set"){
+			if (typeof object == "object"){
+				for (var prop in object){
+					if (config[prop] != undefined && config[prop] != null){
+						config[prop] = object[prop];
+					}
+					else{
+						throw new Error("Property " + prop + " is not in object");
+					}
+				}
+			} else {
+				throw new Error("Wrong config properties list");
+			}
+		} else {
+			throw new Error("First parameter should be get or set")
+		}
+	};
+
+	if (typeof config === "object")
+		this.config("set", config);
 
 	this.push = function(element, options){
 		if (element == undefined)
@@ -89,25 +121,9 @@ function Queue () {
 		queue = [];
 	};
 
-	this.config = function(action, object){
-		if (action == "get"){
-			return config;
-		} else if (action == "set"){
-			if (typeof object == "object"){
-				for (var prop in object){
-					if (config[prop] != undefined && config[prop] != null){
-						config[prop] = object[prop];
-					}
-					else{
-						throw new Error("Property " + prop + " is not in object");
-					}
-				}
-			} else {
-				throw new Error("Wrong config properties list");
-			}
-		} else {
-			throw new Error("First parameter should be get or set")
-		}
+
+	this.updateStates = function(){
+
 	};
 
 	var processQueue = function(){
@@ -184,4 +200,5 @@ function Queue () {
 			});
 		}
 	};
+
 };

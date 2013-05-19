@@ -15,11 +15,15 @@ describe("Method push should", function(){
 		expect(function(){queue.push("asd")}).not.toThrow("Undefined object can't be added to queue");
 	});
 
-	xit("increase count of events", function(){
+	xit("increase count of objects in queue", function(){
 		var count = queue.getQueue().length;
+		expect(count).toBe(0);		
+		var options = {
+			duration: 300
+		};
 		queue.push(object);
-		count++;
-		expect(count).toBe(queue.getQueue().length);		
+		count = queue.getQueue().length;
+		expect(count).toBe(1);		
 	});
 
 	xit("add object to queue", function(){
