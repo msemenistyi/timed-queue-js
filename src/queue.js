@@ -1,4 +1,4 @@
-function Queue (config, states) {
+function Queue (customConfig, customStates) {
 
 	var config = {
 		duration: 0,
@@ -17,15 +17,26 @@ function Queue (config, states) {
 
 	var states = {
 		running: false,
-		custom: []
+		custom: {}
 	};
-	if (states instanceof Array){
-		for (var i = 0; i < states.length; i++) if (typeof states[i] === "string"){
-			states.custom.push(states[i]);
-		} else {
-			throw new Error("Wrong state type. Custom states should be presented with string defining their names.");
+
+	this.utils = new Utils;
+
+	this.addStates = function(statesToBeAdded){
+		if (statesToBeAdded instanceof Array){
+			for (var i = 0; i < statesToBeAdded.length; i++) if (typeof statesToBeAdded[i] === "string"){
+				states.custom[statesToBeAdded[i]] = false;
+			} else {
+				throw new Error("Wrong state type. Custom states should be presented with string defining their names.");
+			}
+		} else if (typeof statesToBeAdded === "string") {
+			states.custom[statesToBeAdded] = false;	
+		} else if (typeof statesToBeAdded !== "undefined") {
+			throw new Error("Wrong states type. Custom states should be presented with either string or array containing strings.");
 		}
-	}
+	};
+
+	this.addStates(customStates);
 
 	this.config = function(action, object){
 		if (action == "get"){
@@ -48,8 +59,8 @@ function Queue (config, states) {
 		}
 	};
 
-	if (typeof config === "object")
-		this.config("set", config);
+	if (typeof customConfig === "object")
+		this.config("set", customConfig);
 
 	this.push = function(element, options){
 		if (element == undefined)
@@ -100,7 +111,8 @@ function Queue (config, states) {
 	this.getHandlers = function(event){
 		if (event){
 			if (handlerNames.indexOf(event) != -1){
-				return handlers[event];
+				var handlersToBeReturned = this.utils.copyObject(handlers[event]);
+				return handlersToBeReturned;
 			} else {
 				throw new Error("There is no such event");
 			}
@@ -110,20 +122,17 @@ function Queue (config, states) {
 	}
 
 	this.getQueue = function(){
-		return queue;
+		var queueToBeReturned = this.utils.copyObject(queue);
+		return queueToBeReturned;
 	};
 
 	this.getStates = function(){
-		return states;
+		var statesToBeReturned = this.utils.copyObject(states);
+		return statesToBeReturned;
 	}
 
 	var resetQueue = function(){
 		queue = [];
-	};
-
-
-	this.updateStates = function(){
-
 	};
 
 	var processQueue = function(){
@@ -200,5 +209,4 @@ function Queue (config, states) {
 			});
 		}
 	};
-
 };
