@@ -282,5 +282,13 @@ describe("Queue ", function(){
 			expect(customStates["animating"]).toBeDefined();
 		});
 
+		it("should be added by passing as a second arg to Queue constructor", function(){
+			var config = {};
+			var states = ["querying", "animating"];
+			queue = new Queue(config, states);
+			var customStates = queue.getStates().custom;
+			expect(customStates["querying"]).toBeDefined();
+			expect(customStates["animating"]).toBeDefined();
+		});
 	});
 });

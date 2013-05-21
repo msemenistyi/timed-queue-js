@@ -38,6 +38,39 @@ function Queue (customConfig, customStates) {
 
 	this.addStates(customStates);
 
+	this.updateStates = function(statesObject){
+		var type = typeof statesObject;
+		if (type === "object"){
+			if (statesObject instanceof Array){
+				for (var i = 0; i < statesObject.length; i++){
+					if (typeof states.custom[statesObject[i]] !== "undefined"){
+						states.custom[statesObject[i]] = true;
+					}
+				}
+			} else {
+				for (var i in statesObject){
+					if (typeof states.custom[i] !== "undefined"){
+						if (typeof statesObject[i] === "boolean"){
+							states.custom[i] = statesObject[i];
+						} else {
+							throw new Error("Value should be boolean");
+						}
+					} else {
+						throw new Error(statesObject + " state is undefined");
+					}
+				}
+			}
+		} else if (type === "string"){
+			if (typeof states.custom[statesObject] !== "undefined"){
+				states.custom[statesObject] = true;
+			} else {
+				throw new Error(statesObject + " state is undefined");
+			}
+		} else {
+			throw new Error("updatesStates method takes ");
+		}
+	};
+
 	this.config = function(action, object){
 		if (action == "get"){
 			return config;
