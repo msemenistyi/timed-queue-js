@@ -157,7 +157,7 @@ describe("Queue ", function(){
 		})
 	});
 
-	describe("Queue should", function(){
+	describe("Queue should trigger", function(){
 
 		var self = this;
 
@@ -167,7 +167,7 @@ describe("Queue ", function(){
 		
 		this.fun = function(event){ console.log("a"); return "fun_result"; }
 		this.fun2 = function(event){ console.log("b"); return "fun_result"; }
-		it("trigger attached handler on event added to the queue", function(){
+		it("attached handler on event added to the queue", function(){
 			spyOn(self, "fun");
 			expect(self.fun.calls.length).toBe(0);
 			queue.on("shift", self.fun)
@@ -175,7 +175,7 @@ describe("Queue ", function(){
 			expect(self.fun.calls.length).toBe(1);
 		});	
 
-		it("trigger all attached handlers on event added to the queue", function(){
+		it("all attached handlers on event added to the queue", function(){
 			spyOn(self, "fun");
 			spyOn(self, "fun2");
 			expect(self.fun.calls.length).toBe(0);
@@ -192,7 +192,7 @@ describe("Queue ", function(){
 				duration: duration
 			};
 
-		it("trigger handlers to be called for all events in the queue", function(){
+		it("handlers to be called for all events in the queue", function(){
 			spyOn(self, "fun");
 			expect(self.fun.calls.length).toBe(0);
 			jasmine.Clock.useMock();
@@ -203,7 +203,7 @@ describe("Queue ", function(){
 			expect(self.fun.calls.length).toBe(2);
 		});
 
-		it("trigger handlers to be called right in time (not earlier)", function(){
+		it("handlers to be called right in time (not earlier)", function(){
 			spyOn(self, "fun");
 			expect(self.fun.calls.length).toBe(0);
 			jasmine.Clock.useMock();
@@ -216,7 +216,7 @@ describe("Queue ", function(){
 			expect(self.fun.calls.length).toBe(2);
 		});
 
-		it("trigger handlers by predefined priorities", function(){
+		it("handlers by predefined priorities", function(){
 			var hand1 = {
 				handler: self.fun,
 				priority: 1
@@ -236,7 +236,7 @@ describe("Queue ", function(){
 			expect(hand2.handler.calls.length).toBe(1);
 		});
 
-		it("trigger handlers exactly predefined number of times", function(){
+		it("handlers exactly predefined number of times", function(){
 			var hand1 = {
 				handler: self.fun,
 				calls: 2
@@ -262,9 +262,9 @@ describe("Queue ", function(){
 		});
 	});
 
-	describe("Custom states", function(){
+	describe("Custom states should", function(){
 		
-		it("should add state represented with string", function(){
+		it("add state represented with string", function(){
 			var customStates = queue.getStates().custom;
 			expect(customStates["animating"]).toBeUndefined();
 			queue.addStates("animating");
@@ -272,7 +272,7 @@ describe("Queue ", function(){
 			expect(customStates["animating"]).toBeDefined();
 		});
 
-		it("should add states represented with array", function(){
+		it("add states represented with array", function(){
 			var customStates = queue.getStates().custom;
 			expect(customStates["querying"]).toBeUndefined();
 			expect(customStates["animating"]).toBeUndefined();
@@ -282,13 +282,78 @@ describe("Queue ", function(){
 			expect(customStates["animating"]).toBeDefined();
 		});
 
-		it("should be added by passing as a second arg to Queue constructor", function(){
+		it("be added by passing as a second arg to Queue constructor", function(){
 			var config = {};
 			var states = ["querying", "animating"];
 			queue = new Queue(config, states);
 			var customStates = queue.getStates().custom;
 			expect(customStates["querying"]).toBeDefined();
 			expect(customStates["animating"]).toBeDefined();
+		});
+
+		it("throw an exception on attempt to pass wrong argument types", function(){
+			var state = 5;
+			expect(function(){ queue.addStates(state)}).toThrow("Wrong states type. Custom states should be presented with either string or array containing strings.");
+		});
+
+		var state = "asd";
+		it("throw an expection on attempt to update state that doesn't exist", function(){
+			expect(function(){ queue.updateStates(state); }).toThrow(state + " state is undefined");
+
+		});
+
+		it("be updated be passing string", function(){
+			queue.addStates(state);
+			var condition = queue.getStates().custom[state];
+			expect(condition).toBeFalsy();
+			queue.updateStates(state);
+			var condition = queue.getStates().custom[state];
+			expect(condition).toBeTruthy();
+		});
+
+		var states = ["active", "querying", "animating"];
+		it("be updated by passing array", function(){
+			queue.addStates(states);
+			var currentStates = queue.getStates().custom;
+			expect(currentStates[states[0]]).toBeFalsy();
+			expect(currentStates[states[1]]).toBeFalsy();
+			expect(currentStates[states[2]]).toBeFalsy();
+			queue.updateStates(states);
+			var currentStates = queue.getStates().custom;
+			expect(currentStates[states[0]]).toBeTruthy();
+			expect(currentStates[states[1]]).toBeTruthy();
+			expect(currentStates[states[2]]).toBeTruthy();
+		});
+
+		var statesToBeUpdated = {
+			active: true,
+			querying: false,
+			animating: true
+		};
+		it("be updated by passing key:value pairs", function(){
+			queue.addStates(states);
+			var currentStates = queue.getStates().custom;
+			expect(currentStates["active"]).toBeFalsy();
+			expect(currentStates["querying"]).toBeFalsy();
+			expect(currentStates["animating"]).toBeFalsy();
+			queue.updateStates(statesToBeUpdated);
+			var currentStates = queue.getStates().custom;
+			expect(currentStates["active"]).toBeTruthy();
+			expect(currentStates["querying"]).toBeFalsy();
+			expect(currentStates["animating"]).toBeTruthy();
+		});
+
+		it("throw an exception on attempt to pass wrong key", function(){
+			queue.addStates(states);
+			var currentStates = queue.getStates().custom;
+			expect(currentStates["waiting"]).toBeUndefined();
+			statesToBeUpdated["waiting"] = true;
+			expect(function(){ queue.updateStates(statesToBeUpdated); }).toThrow("waiting state is undefined");
+		});
+
+		it("throw an exception on attempt to pass number as an argument to updateStates", function(){
+			var state = 5;
+			expect(function(){ queue.updateStates()}).toThrow("Wrong arg type. updatesStates method takes either string, array or string:boolean pairs");
 		});
 	});
 });

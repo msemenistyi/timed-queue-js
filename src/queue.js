@@ -56,7 +56,7 @@ function Queue (customConfig, customStates) {
 							throw new Error("Value should be boolean");
 						}
 					} else {
-						throw new Error(statesObject + " state is undefined");
+						throw new Error(i + " state is undefined");
 					}
 				}
 			}
@@ -67,7 +67,7 @@ function Queue (customConfig, customStates) {
 				throw new Error(statesObject + " state is undefined");
 			}
 		} else {
-			throw new Error("updatesStates method takes ");
+			throw new Error("Wrong arg type. updatesStates method takes either string, array or string:boolean pairs");
 		}
 	};
 
