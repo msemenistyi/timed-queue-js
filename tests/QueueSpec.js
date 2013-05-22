@@ -212,7 +212,7 @@ describe("Queue ", function(){
 			jasmine.Clock.tick(299);
 			queue.push("2");
 			expect(self.fun.calls.length).toBe(1);
-			jasmine.Clock.tick(1);
+			jasmine.Clock.tick(200);
 			expect(self.fun.calls.length).toBe(2);
 		});
 

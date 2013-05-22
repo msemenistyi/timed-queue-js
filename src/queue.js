@@ -17,6 +17,7 @@ function Queue (customConfig, customStates) {
 
 	var states = {
 		running: false,
+		waiting: false,
 		custom: {}
 	};
 
@@ -169,15 +170,21 @@ function Queue (customConfig, customStates) {
 	};
 
 	var processQueue = function(){
-		if (queue.length != 0 && !states.running){
-			updateQueueDueToPriorities();
-			var item = queue.shift();
-			states.running = true;
-			triggerHandlers("shift", item.element);
-			if (item.options.duration != 0){
-				setTimeout(processQueue, item.options.duration);
-			} else{
-				processQueue();
+		if (queue.length != 0){
+			if (states.running === false){
+				states.waiting = false;
+				if (checkStates() === true){
+					updateQueueDueToPriorities();
+					var item = queue.shift();
+					states.running = true;
+					triggerHandlers("shift", item.element);
+					if (item.options.duration != 0){
+						setTimeout(processQueue, item.options.duration);
+						states.waiting = true;
+					} else{
+						processQueue();
+					}
+				}
 			}
 		} else {
 			states.running = false;
@@ -209,6 +216,15 @@ function Queue (customConfig, customStates) {
 			throw new Error("There is no such event");
 		}
 	}
+
+	var checkStates = function(){
+		for (var i in states.custom){
+			if (states.custom[i] === true){
+				return false;
+			}
+		}
+		return true;
+	};
 
 	var optionsResolver = function(options){
 		if (options == undefined){
