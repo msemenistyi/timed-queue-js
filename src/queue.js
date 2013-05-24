@@ -113,6 +113,13 @@ function Queue (customConfig, customStates) {
 					if (typeof handlerOptions.handler == "function"){
 						var handler = {};
 						handler.fun = handlerOptions.handler;
+						
+						if (typeof handlerOptions.context === "object"){
+							handler.context = handlerOptions.context;
+						} else if (typeof context !== "undefined"){
+							throw new Error("Context for handler should be a function");
+						}
+
 						if (typeof handlerOptions.priority != "undefined"){
 							if (typeof handlerOptions.priority == "number"){
 								handler.priority = parseInt(handlerOptions.priority);
@@ -120,6 +127,7 @@ function Queue (customConfig, customStates) {
 								throw new Error("Event handler priority should be a number");
 							}
 						}
+						
 						if (typeof handlerOptions.calls != "undefined"){
 							if (typeof handlerOptions.calls == "number"){
 								handler.calls = parseInt(handlerOptions.calls);
@@ -200,7 +208,11 @@ function Queue (customConfig, customStates) {
 			for (var i = 0; i < y; i++){
 				if (typeof handlers[event][i].calls != "undefined"){
 					if (handlers[event][i].calls > 0){
-						handlers[event][i].fun(item);
+						if (typeof handlers[event][i].context !== "undefined"){
+							handlers[event][i].fun.call(handlers[event][i].context, item);
+						} else {
+							handlers[event][i].fun(item);
+						}
 						handlers[event][i].calls--;
 						if (handlers[event][i].calls == 0){
 							handlers[event].splice(i,1);
@@ -209,7 +221,11 @@ function Queue (customConfig, customStates) {
 						}
 					}
 				} else {
-					handlers[event][i].fun(item);
+					if (typeof handlers[event][i].context !== "undefined"){
+						handlers[event][i].fun.call(handlers[event][i].context, item);
+					} else {
+						handlers[event][i].fun(item);
+					}
 				}
 			}
 		} else {

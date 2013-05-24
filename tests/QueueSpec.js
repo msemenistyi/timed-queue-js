@@ -216,26 +216,6 @@ describe("Queue ", function(){
 			expect(self.fun.calls.length).toBe(2);
 		});
 
-		it("handlers by predefined priorities", function(){
-			var hand1 = {
-				handler: self.fun,
-				priority: 1
-			};
-			var hand2 = {
-				handler: self.fun2,
-				priority: 0
-			};
-			spyOn(hand1, "handler");
-			spyOn(hand2, "handler");
-			expect(hand1.handler.calls.length).toBe(0);
-			expect(hand2.handler.calls.length).toBe(0);
-			queue.on("shift", hand1);
-			queue.on("shift", hand2);
-			queue.push("1");
-			expect(hand1.handler.calls.length).toBe(1);
-			expect(hand2.handler.calls.length).toBe(1);
-		});
-
 		it("handlers exactly predefined number of times", function(){
 			var hand1 = {
 				handler: self.fun,
@@ -259,6 +239,45 @@ describe("Queue ", function(){
 			queue.push("3");
 			expect(hand1.handler.calls.length).toBe(2);
 			expect(hand2.handler.calls.length).toBe(3);
+		});
+
+
+		it("handlers by predefined priorities", function(){
+			self.fun = function(){
+				this.a += "1";
+			};
+			self.fun2 = function(){
+				this.a += "2";
+			};
+			this.a = "0";
+			var hand1 = {
+				handler: self.fun,
+				priority: 1,
+				context: this
+			};
+			var hand2 = {
+				handler: self.fun2,
+				priority: 0,
+				context: this
+			};
+			queue.on("shift", hand1);
+			queue.on("shift", hand2);
+			queue.push("1");
+			expect(this.a).toBe("021");
+		});
+
+		it("handlers in predefined context", function(){
+			this.a = null;
+			self.fun = function(){
+				this.a = 5;
+			};
+			var hand1 = {
+				handler: self.fun,
+				context: this
+			};
+			queue.on("shift", hand1);
+			queue.push(hand1);
+			expect(this.a).toBe(5);
 		});
 	});
 
